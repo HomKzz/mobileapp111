@@ -10,6 +10,7 @@ import HomeScreen from './Screen/HomeScreen';
 import AgendaScreen from './Screen/AgendaScreen';
 import SettingsScreen from './Screen/SettingsScreen';
 import AuthScreen from './Screen/AuthScreen';
+import ReportScreen from './Screen/Report';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -47,6 +48,17 @@ function CalendarStack() {
       <Stack.Screen 
         name="AgendaScreen" 
         component={AgendaScreen} 
+        options={{ headerShown: false }}
+      />
+    </Stack.Navigator>
+  );
+}
+function ReportStack() {
+  return (
+    <Stack.Navigator>
+      <Stack.Screen 
+        name="ReportScreen" 
+        component={ReportScreen} 
         options={{ headerShown: false }}
       />
     </Stack.Navigator>
@@ -92,6 +104,8 @@ export default function App() {
                 iconName = 'calendar-outline'; // ใช้ไอคอน calendar-outline
               } else if (route.name === 'ตั้งค่า') {
                 iconName = 'settings-outline'; // ใช้ไอคอน settings-outline
+              } else if (route.name === 'สรุปผล'){
+                iconName = 'newspaper-outline'; // ใช้ไอคอน settings-outline
               }
 
               // Return the Ionicons component
@@ -107,6 +121,11 @@ export default function App() {
           <Tab.Screen 
             name="เหตุการณ์" 
             component={CalendarStack} 
+            options={{ headerShown: false }}
+          />
+          <Tab.Screen 
+            name="สรุปผล"
+            component={ReportStack} 
             options={{ headerShown: false }}
           />
           <Tab.Screen 
