@@ -110,7 +110,7 @@ export default function App() {
             options={{ headerShown: false }}
           />
           <Tab.Screen 
-            name="ตั้งค่า" ///tetstststststststztatatatastst
+            name="ตั้งค่า"
             component={SettingsStack} 
             options={{ headerShown: false }}
           />
