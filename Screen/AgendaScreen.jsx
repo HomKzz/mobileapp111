@@ -89,11 +89,13 @@ const AgendaScreen = () => {
   const calculateDaysUntilNextPeriod = () => {
     if (nextPeriodDate) {
       const today = new Date();
-      const timeDiff = nextPeriodDate - today;
-      return Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+      const selectedDateObj = new Date(selectedDate); // Convert selectedDate to Date object
+      const timeDiff = nextPeriodDate - selectedDateObj; // Subtract Date objects
+      return Math.ceil(timeDiff / (1000 * 60 * 60 * 24)); // Convert milliseconds to days
     }
     return null;
   };
+  
 
   const renderItem = (reservation, isFirst) => {
     const fontSize = isFirst ? 16 : 14;
@@ -156,6 +158,27 @@ const AgendaScreen = () => {
         showClosingKnob={true}
         onDayPress={(day) => setSelectedDate(day.dateString)}
         markedDates={markedDates}
+        theme={{
+          backgroundColor: '#FFFFFF', // White background for the calendar
+          calendarBackground: '#FFFFFF', // White background for the calendar
+          textSectionTitleColor: '#333333', // Dark grey for section title
+          selectedDayBackgroundColor: '#FF69B4', // Pink for selected day
+          selectedDayTextColor: '#FFFFFF', // White text for selected day
+          todayTextColor: '#FF69B4', // Pink for today's date
+          dayTextColor: '#333333', // Dark grey for regular days
+          textDisabledColor: '#d9e1e8', // Light grey for disabled days
+          dotColor: '#FF69B4', // Pink dots for events
+          selectedDotColor: '#FFFFFF', // White dot for selected day
+          arrowColor: '#FF69B4', // Pink for arrows
+          monthTextColor: '#333333', // Dark grey for month text
+          indicatorColor: '#FF69B4', // Pink for indicator
+          textDayFontWeight: '300',
+          textMonthFontWeight: 'bold',
+          textDayHeaderFontWeight: '300',
+          textDayFontSize: 16,
+          textMonthFontSize: 16,
+          textDayHeaderFontSize: 16,
+        }}
       />
 
       <TouchableOpacity 
@@ -184,8 +207,12 @@ const AgendaScreen = () => {
             <ScrollView>
               {renderOptionButtons()}
             </ScrollView>
-            <Button title="เพิ่มเหตุการณ์" onPress={addEvent} color="#28a745" />
-            <Button title="ยกเลิก" onPress={() => setModalVisible(false)} color="#ff6347" />
+            <TouchableOpacity style={styles.modalButton} onPress={addEvent}>
+              <Text style={styles.modalButtonText}>เพิ่มเหตุการณ์</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.modalButton, styles.cancelButton]} onPress={() => setModalVisible(false)}>
+              <Text style={styles.modalButtonText}>ยกเลิก</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -196,24 +223,24 @@ const AgendaScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#FFFFFF', // White background for the entire screen
   },
   item: {
-    backgroundColor: '#ffffff',
+    backgroundColor: '#F9F9F9', // Light grey background for calendar items
     flex: 1,
-    borderRadius: 10,
+    borderRadius: 15,
     padding: 15,
     marginRight: 10,
     marginTop: 17,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.1,
     shadowRadius: 3,
-    elevation: 5,
+    elevation: 3,
   },
   optionText: {
     fontSize: 12,
-    color: '#888',
+    color: '#333333', // Dark grey text for options
   },
   emptyContainer: {
     flex: 1,
@@ -222,25 +249,25 @@ const styles = StyleSheet.create({
     height: 100,
   },
   emptyText: {
-    color: '#888',
+    color: '#333333', // Dark grey text
     fontSize: 20,
-    fontWeight: 'bold'
+    fontWeight: 'bold',
   },
   modalContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.3)', // Semi-transparent black for modal background
   },
   modalContent: {
-    width: '80%',
-    backgroundColor: '#ffffff',
-    borderRadius: 10,
+    width: '90%',
+    backgroundColor: '#FFFFFF', // White modal background
+    borderRadius: 20,
     padding: 20,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.3,
-    shadowRadius: 2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
     elevation: 5,
   },
   modalTitle: {
@@ -248,51 +275,72 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 15,
     textAlign: 'center',
+    color: '#333333', // Dark grey modal title text
   },
   modalInput: {
     borderWidth: 1,
-    borderColor: '#ccc',
-    padding: 10,
-    borderRadius: 5,
+    borderColor: '#E0E0E0', // Light grey border for input field
+    padding: 15,
+    borderRadius: 10,
     marginBottom: 20,
+    fontSize: 16,
+    backgroundColor: '#F9F9F9', // Light grey background for input
   },
   optionTitle: {
-    fontSize: 16,
+    fontSize: 18,
     marginBottom: 10,
     fontWeight: '600',
+    color: '#333333', // Dark grey option title text
   },
   optionButton: {
-    padding: 10,
-    backgroundColor: '#e0e0e0',
-    borderRadius: 5,
+    padding: 15,
+    backgroundColor: '#F0F0F0', // Light grey background for option buttons
+    borderRadius: 10,
     marginBottom: 10,
     alignItems: 'center',
   },
   selectedOption: {
-    backgroundColor: '#4caf50',
+    backgroundColor: '#D1E9F6', // Light blue background for selected options
   },
   optionButtonText: {
-    color: 'black',
+    color: '#333333', // Dark grey text for option buttons
     fontSize: 16,
   },
   addEventButton: {
-    backgroundColor: '#007bff', // สีน้ำเงิน
-    borderRadius: 5,
-    paddingVertical: 12, // เพิ่มระยะห่างแนวตั้ง
-    paddingHorizontal: 20, // เพิ่มระยะห่างแนวนอน
-    alignSelf: 'center', // จัดแนงให้กลาง
-    margin: 20, // เพิ่มระยะห่างรอบปุ่ม
+    backgroundColor: '#FF69B4', // Pink color for the button
+    borderRadius: 25,
+    paddingVertical: 15,
+    paddingHorizontal: 25,
+    alignSelf: 'center',
+    margin: 20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
     elevation: 5,
   },
   addEventButtonText: {
-    color: '#fff',
+    color: '#FFFFFF', // White text for add event button
     fontSize: 20,
     textAlign: 'center',
+    fontWeight: 'bold',
+  },
+  modalButton: {
+    backgroundColor: '#FF69B4', // Pink color for modal buttons
+    borderRadius: 10,
+    padding: 15,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  cancelButton: {
+    backgroundColor: '#FFB6C1', // Light pink for cancel button
+  },
+  modalButtonText: {
+    color: '#FFFFFF', // White text for modal buttons
+    fontSize: 18,
+    fontWeight: 'bold',
   },
 });
+
 
 export default AgendaScreen;
