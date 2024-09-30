@@ -1,10 +1,45 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { SafeAreaView, Text, StyleSheet, View } from 'react-native';
-import { useState } from 'react';
+import { db, auth } from '../FirebaseConfig'; // Import your Firestore and Auth instances
+import { getDoc, doc } from 'firebase/firestore'; // Firestore methods
+import Fontisto from '@expo/vector-icons/Fontisto';
+import FontAwesome6 from 'react-native-vector-icons/FontAwesome6'; 
 
 export default function Report() {
   const [menstruation, setMenstruation] = useState("28 วัน");
   const [variation, setVariation] = useState('2 วัน');
+  const [daysUntilNextPeriod, setDaysUntilNextPeriod] = useState(0);
+  const [daysUntilOvulation, setDaysUntilOvulation] = useState(0);
+
+  useEffect(() => {
+    const fetchCycleData = async () => {
+      const user = auth.currentUser;
+      if (user) {
+        const docRef = doc(db, 'users', user.uid);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          const userData = docSnap.data();
+          const lastPeriod = new Date(userData.lastPeriod);
+          const cycleLength = parseInt(userData.cycleLength) || 28;
+          const today = new Date();
+
+          // Calculate days until next period
+          const nextPeriodDate = new Date(lastPeriod);
+          nextPeriodDate.setDate(lastPeriod.getDate() + cycleLength);
+          const daysUntilNext = Math.ceil((nextPeriodDate - today) / (1000 * 60 * 60 * 24));
+          setDaysUntilNextPeriod(daysUntilNext >= 0 ? daysUntilNext : 0);
+
+          // Calculate days until ovulation
+          const ovulationDate = new Date(nextPeriodDate);
+          ovulationDate.setDate(ovulationDate.getDate() - 14);
+          const daysUntilOvulation = Math.ceil((ovulationDate - today) / (1000 * 60 * 60 * 24));
+          setDaysUntilOvulation(daysUntilOvulation >= 0 ? daysUntilOvulation : 0);
+        }
+      }
+    };
+
+    fetchCycleData();
+  }, []);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -12,20 +47,26 @@ export default function Report() {
         <Text style={styles.title}>สรุปผล</Text>
 
         <View style={styles.statsContainer}>
-          <Text style={styles.header}>สถิติรอบเดือน</Text>
-          <Text style={styles.subheader}>ค่าเฉลี่ยขึ้นอยู่กับ 6 รอบเดือนล่าสุดของคุณ</Text>
-          
+          <Text style={styles.header}>รอบเดือน</Text>
+
           <View style={styles.containerD}>
             <View style={styles.row}>
-              <Text style={styles.text}>ความห่างรอบเดือน</Text>
-              <Text style={styles.menstruationText}>{menstruation}</Text>
+              <Text style={styles.text}>
+                <FontAwesome6 name="egg" size={24} color="#FDDBB0" /> วันไข่ตกอีกกี่วัน
+              </Text>
+              <Text style={styles.menstruationText}>{daysUntilOvulation-1} วัน</Text>
             </View>
+            <Text style={styles.note}>
+              หมายเหตุ: วันไข่ตกมีโอกาสมีโอรสสูง
+            </Text>
           </View>
-          
+
           <View style={styles.containerD}>
             <View style={styles.row}>
-              <Text style={styles.text}>การผันแปรการห่างรอบเดือน</Text>
-              <Text style={styles.menstruationText}>{variation}</Text>
+              <Text style={styles.text}>
+                <Fontisto name="blood-drop" size={24} color="red" /> ประจำเดือนจะมาอีกกี่วัน
+              </Text>
+              <Text style={styles.menstruationText}>{daysUntilNextPeriod-1} วัน</Text>
             </View>
           </View>
         </View>
@@ -37,8 +78,8 @@ export default function Report() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff', // สีพื้นหลังหลักเป็นสีขาว
-    textAlign:'center'
+    backgroundColor: '#fff',
+    textAlign: 'center'
   },
   innerContainer: {
     padding: 16,
@@ -74,22 +115,32 @@ const styles = StyleSheet.create({
     marginTop: 10,
     marginBottom: 10,
     borderRadius: 15,
-    backgroundColor: '#fff', // สีพื้นหลังของแต่ละบล็อก
+    backgroundColor: '#fff',
     width: 340,
+    height: 220, // Increased height to accommodate note
   },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    flex: 1,
   },
   text: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#656565',
+    textAlign: 'center', // Center text
   },
   menstruationText: {
     color: '#5856D6',
     fontWeight: 'bold',
     fontSize: 20,
+    textAlign: 'center', // Center text
+  },
+  note: {
+    marginTop: 10,
+    fontSize: 14,
+    color: '#FF6347', // Note color
+    textAlign: 'center', // Center note text
   },
 });

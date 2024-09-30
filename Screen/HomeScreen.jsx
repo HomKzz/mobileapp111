@@ -13,6 +13,9 @@ export default function Home() {
   const [nextPeriodDates, setNextPeriodDates] = useState({});
   const [selectedDate, setSelectedDate] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [daysUntilNextPeriod, setDaysUntilNextPeriod] = useState(null);
+  const [daysUntilOvulation, setDaysUntilOvulation] = useState(null);
+
  
 
   useEffect(() => {
@@ -57,18 +60,20 @@ export default function Home() {
           lastPeriod: selectedDate,
           cycleLength: cycleLength,
         });
-
+  
         await AsyncStorage.setItem('lastPeriod', selectedDate);
         await AsyncStorage.setItem('cycleLength', cycleLength);
-
+  
         setLastPeriod(selectedDate);
         calculateNextPeriodAndOvulation(selectedDate, parseInt(cycleLength));
+        calculateDaysUntilNextPeriodAndOvulation(selectedDate, parseInt(cycleLength)); // Add this line
         setSelectedDate(null);
       }
     } catch (error) {
       console.error("Error saving period data: ", error);
     }
   };
+  
 
   const calculateNextPeriodAndOvulation = (startDate, cycle) => {
     const nextPeriods = {};
@@ -138,6 +143,40 @@ export default function Home() {
     saveMarkedDates({ ...nextPeriods });
   };
 
+  const calculateDaysUntilNextPeriodAndOvulation = (lastPeriod, cycleLength) => {
+    if (!lastPeriod) return;
+  
+    const lastPeriodDate = new Date(lastPeriod);
+    const nextPeriodDate = new Date(lastPeriodDate);
+    nextPeriodDate.setDate(nextPeriodDate.getDate() + cycleLength);
+  
+    const ovulationDate = new Date(nextPeriodDate);
+    ovulationDate.setDate(ovulationDate.getDate() - 14);
+  
+    const today = new Date();
+    const daysToNextPeriod = Math.ceil((nextPeriodDate - today) / (1000 * 60 * 60 * 24));
+    const daysToOvulation = Math.ceil((ovulationDate - today) / (1000 * 60 * 60 * 24));
+  
+    setDaysUntilNextPeriod(daysToNextPeriod);
+    setDaysUntilOvulation(daysToOvulation);
+  
+    saveDaysToFirestore(daysToNextPeriod, daysToOvulation);
+  };
+  
+  const saveDaysToFirestore = async (daysToNextPeriod, daysToOvulation) => {
+    try {
+      const userId = auth.currentUser.uid;
+      const docRef = doc(db, 'users', userId);
+      await setDoc(docRef, {
+        daysUntilNextPeriod: daysToNextPeriod,
+        daysUntilOvulation: daysToOvulation,
+      }, { merge: true });
+      console.log('Days until next period and ovulation saved to Firestore successfully!');
+    } catch (error) {
+      console.error('Error saving days to Firestore: ', error);
+    }
+  };
+  
   const saveMarkedDates = async (markedDates) => {
     const datesToSave = Object.keys(markedDates);
 
