@@ -63,8 +63,8 @@ const AgendaScreen = () => {
   };
 
   const addEvent = () => {
-    if (!newEventName.trim()) {
-      Alert.alert('Error', 'Event name cannot be empty!');
+    if (!newEventName.trim() && !selectedOption) {
+      Alert.alert('Error', 'โปรดใส่ข้อความหรือเลือกหัวข้อ');
       return;
     }
 
@@ -88,7 +88,6 @@ const AgendaScreen = () => {
 
   const calculateDaysUntilNextPeriod = () => {
     if (nextPeriodDate) {
-      const today = new Date();
       const selectedDateObj = new Date(selectedDate); // Convert selectedDate to Date object
       const timeDiff = nextPeriodDate - selectedDateObj; // Subtract Date objects
       return Math.ceil(timeDiff / (1000 * 60 * 60 * 24)); // Convert milliseconds to days
@@ -104,10 +103,10 @@ const AgendaScreen = () => {
     return (
       <TouchableOpacity
         style={[styles.item, { height: reservation.height }]}
-        onPress={() => Alert.alert(reservation.name, `Option: ${reservation.option}`)}
+        onPress={() => Alert.alert(reservation.name, `${reservation.option}`)}
       >
         <Text style={{ fontSize, color }}>{reservation.name}</Text>
-        <Text style={styles.optionText}>{`Option: ${reservation.option}`}</Text>
+        <Text style={styles.optionText}>{`${reservation.option}`}</Text>
       </TouchableOpacity>
     );
   };
