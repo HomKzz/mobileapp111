@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { SafeAreaView, Text, StyleSheet, View } from 'react-native';
 import { db, auth } from '../FirebaseConfig'; // Import your Firestore and Auth instances
-import { getDoc, doc } from 'firebase/firestore'; // Firestore methods
+import { doc, onSnapshot } from 'firebase/firestore'; // Firestore methods
 import Fontisto from '@expo/vector-icons/Fontisto';
 import FontAwesome6 from 'react-native-vector-icons/FontAwesome6'; 
 
@@ -12,29 +12,33 @@ export default function Report() {
   const [daysUntilOvulation, setDaysUntilOvulation] = useState(0);
 
   useEffect(() => {
-    const fetchCycleData = async () => {
+    const fetchCycleData = () => {
       const user = auth.currentUser;
       if (user) {
         const docRef = doc(db, 'users', user.uid);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          const userData = docSnap.data();
-          const lastPeriod = new Date(userData.lastPeriod);
-          const cycleLength = parseInt(userData.cycleLength) || 28;
-          const today = new Date();
+        const unsubscribe = onSnapshot(docRef, (docSnap) => {
+          if (docSnap.exists()) {
+            const userData = docSnap.data();
+            const lastPeriod = new Date(userData.lastPeriod);
+            const cycleLength = parseInt(userData.cycleLength) || 28;
+            const today = new Date();
 
-          // Calculate days until next period
-          const nextPeriodDate = new Date(lastPeriod);
-          nextPeriodDate.setDate(lastPeriod.getDate() + cycleLength);
-          const daysUntilNext = Math.ceil((nextPeriodDate - today) / (1000 * 60 * 60 * 24));
-          setDaysUntilNextPeriod(daysUntilNext >= 0 ? daysUntilNext : 0);
+            // Calculate days until next period
+            const nextPeriodDate = new Date(lastPeriod);
+            nextPeriodDate.setDate(lastPeriod.getDate() + cycleLength);
+            const daysUntilNext = Math.ceil((nextPeriodDate - today) / (1000 * 60 * 60 * 24));
+            setDaysUntilNextPeriod(daysUntilNext >= 0 ? daysUntilNext : 0);
 
-          // Calculate days until ovulation
-          const ovulationDate = new Date(nextPeriodDate);
-          ovulationDate.setDate(ovulationDate.getDate() - 14);
-          const daysUntilOvulation = Math.ceil((ovulationDate - today) / (1000 * 60 * 60 * 24));
-          setDaysUntilOvulation(daysUntilOvulation >= 0 ? daysUntilOvulation : 0);
-        }
+            // Calculate days until ovulation
+            const ovulationDate = new Date(nextPeriodDate);
+            ovulationDate.setDate(ovulationDate.getDate() - 14);
+            const daysUntilOvulation = Math.ceil((ovulationDate - today) / (1000 * 60 * 60 * 24));
+            setDaysUntilOvulation(daysUntilOvulation >= 0 ? daysUntilOvulation : 0);
+          }
+        });
+
+        // Clean up the listener when the component unmounts
+        return () => unsubscribe();
       }
     };
 
